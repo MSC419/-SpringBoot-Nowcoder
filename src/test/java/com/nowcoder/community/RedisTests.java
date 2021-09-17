@@ -22,6 +22,7 @@ public class RedisTests {
     @Autowired
     private RedisTemplate redisTemplate;
 
+
     @Test
     public void testStrings(){
         String redisKey = "test:count";
@@ -97,26 +98,29 @@ public class RedisTests {
     @Test
     public void testBoundOperations(){
         String redisKey = "test:count";
+        //BoundxxxOperations中间是访问的数据类型
         BoundValueOperations operations = redisTemplate.boundValueOps(redisKey);
+        //对比之前：redisTemplate.opsForValue().increment(redisKey)
         operations.increment();
         System.out.println(operations.get());
     }
 
     //编程式事务
+    //启动事务之后，后面的Redis命令并不会立即执行，而是把命令放在队列里，提交事务时批量执行
+    //所以不要在事务里查询，要在事务提交后查询
     @Test
     public void testTransactional(){
         Object obj = redisTemplate.execute(new SessionCallback() {
             @Override
             public Object execute(RedisOperations operations) throws DataAccessException {
                 String redisKey = "text:tx";
-                operations.multi();
-
-                operations.opsForSet().add(redisKey, "张三");
-                operations.opsForSet().add(redisKey, "李四");
-                operations.opsForSet().add(redisKey, "王五");
-
+                operations.multi();//启动事务
+                operations.opsForSet().add(redisKey,"zhangsan");
+                operations.opsForSet().add(redisKey,"lisi");
                 System.out.println(operations.opsForSet().members(redisKey));
-                return null;
+                operations.opsForSet().add(redisKey,"wangwu");
+                System.out.println(operations.opsForSet().members(redisKey));
+                return operations.exec();//提交事务
             }
         });
         System.out.println(obj);
