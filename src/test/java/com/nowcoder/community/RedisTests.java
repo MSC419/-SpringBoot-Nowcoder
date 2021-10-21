@@ -22,107 +22,113 @@ public class RedisTests {
     @Autowired
     private RedisTemplate redisTemplate;
 
-
     @Test
     public void testStrings(){
         String redisKey = "test:count";
-        redisTemplate.opsForValue().set(redisKey, 1);
-
+        //存数据
+        redisTemplate.opsForValue().set(redisKey,1);
+        //取数据
         System.out.println(redisTemplate.opsForValue().get(redisKey));
-        System.out.println(redisTemplate.opsForValue().increment(redisKey));
-        System.out.println(redisTemplate.opsForValue().decrement(redisKey));
+
     }
 
-    @Test
-    public void testHash(){
-        String redisKey = "test:user";
-
-        redisTemplate.opsForHash().put(redisKey, "id", 1);
-        redisTemplate.opsForHash().put(redisKey,"username","zhangsan");
-
-        System.out.println(redisTemplate.opsForHash().get(redisKey, "id"));
-        System.out.println(redisTemplate.opsForHash().get(redisKey, "username"));
-    }
-
-    @Test
-    public void testLists(){
-        String redisKey = "test:ids";
-
-        redisTemplate.opsForList().leftPush(redisKey, 101);
-        redisTemplate.opsForList().leftPush(redisKey, 102);
-        redisTemplate.opsForList().leftPush(redisKey, 103);
-
-        System.out.println(redisTemplate.opsForList().size(redisKey));
-        System.out.println(redisTemplate.opsForList().index(redisKey, 0));
-        System.out.println(redisTemplate.opsForList().range(redisKey, 0, 2));
-
-        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
-        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
-        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
-    }
-
-    @Test
-    public void testSets() {
-        String redisKey = "test:teachers";
-
-        redisTemplate.opsForSet().add(redisKey,"刘备","关羽","张飞");
-
-        System.out.println(redisTemplate.opsForSet().size(redisKey));
-        System.out.println(redisTemplate.opsForSet().pop(redisKey));
-        System.out.println(redisTemplate.opsForSet().members(redisKey));
-    }
-
-    @Test
-    public void testSortedSets() {
-        String redisKey = "test:students";
-
-        redisTemplate.opsForZSet().add(redisKey, "唐僧", 80);
-        redisTemplate.opsForZSet().add(redisKey, "悟空", 90);
-        redisTemplate.opsForZSet().add(redisKey, "八戒", 70);
-
-        System.out.println(redisTemplate.opsForZSet().zCard(redisKey));
-        System.out.println(redisTemplate.opsForZSet().score(redisKey,"八戒"));
-        System.out.println(redisTemplate.opsForZSet().rank(redisKey,"八戒"));
-        System.out.println(redisTemplate.opsForZSet().reverseRank(redisKey,"八戒"));
-    }
-
-    @Test
-    public void testKeys() {
-        redisTemplate.delete("test:user");
-        System.out.println(redisTemplate.hasKey("test:uesr"));
-
-        redisTemplate.expire("test:students", 10, TimeUnit.SECONDS);
-    }
-
-    //多次访问同一个key
-    @Test
-    public void testBoundOperations(){
-        String redisKey = "test:count";
-        //BoundxxxOperations中间是访问的数据类型
-        BoundValueOperations operations = redisTemplate.boundValueOps(redisKey);
-        //对比之前：redisTemplate.opsForValue().increment(redisKey)
-        operations.increment();
-        System.out.println(operations.get());
-    }
-
-    //编程式事务
-    //启动事务之后，后面的Redis命令并不会立即执行，而是把命令放在队列里，提交事务时批量执行
-    //所以不要在事务里查询，要在事务提交后查询
-    @Test
-    public void testTransactional(){
-        Object obj = redisTemplate.execute(new SessionCallback() {
-            @Override
-            public Object execute(RedisOperations operations) throws DataAccessException {
-                String redisKey = "text:tx";
-                operations.multi();//启动事务
-                operations.opsForSet().add(redisKey,"zhangsan");
-                operations.opsForSet().add(redisKey,"lisi");
-                System.out.println(operations.opsForSet().members(redisKey));
-                operations.opsForSet().add(redisKey,"wangwu");
-                System.out.println(operations.opsForSet().members(redisKey));
-                return operations.exec();//提交事务
-            }
-        });
-        System.out.println(obj);
-    }
+//    @Test
+//    public void testStrings(){
+//        String redisKey = "test:count";
+//        redisTemplate.opsForValue().set(redisKey, 1);
+//
+//        System.out.println(redisTemplate.opsForValue().get(redisKey));
+//        System.out.println(redisTemplate.opsForValue().increment(redisKey));
+//        System.out.println(redisTemplate.opsForValue().decrement(redisKey));
+//    }
+//
+//    @Test
+//    public void testHash(){
+//        String redisKey = "test:user";
+//
+//        redisTemplate.opsForHash().put(redisKey, "id", 1);
+//        redisTemplate.opsForHash().put(redisKey,"username","zhangsan");
+//
+//        System.out.println(redisTemplate.opsForHash().get(redisKey, "id"));
+//        System.out.println(redisTemplate.opsForHash().get(redisKey, "username"));
+//    }
+//
+//    @Test
+//    public void testLists(){
+//        String redisKey = "test:ids";
+//
+//        redisTemplate.opsForList().leftPush(redisKey, 101);
+//        redisTemplate.opsForList().leftPush(redisKey, 102);
+//        redisTemplate.opsForList().leftPush(redisKey, 103);
+//
+//        System.out.println(redisTemplate.opsForList().size(redisKey));
+//        System.out.println(redisTemplate.opsForList().index(redisKey, 0));
+//        System.out.println(redisTemplate.opsForList().range(redisKey, 0, 2));
+//
+//        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
+//        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
+//        System.out.println(redisTemplate.opsForList().leftPop(redisKey));
+//    }
+//
+//    @Test
+//    public void testSets() {
+//        String redisKey = "test:teachers";
+//
+//        redisTemplate.opsForSet().add(redisKey,"刘备","关羽","张飞");
+//
+//        System.out.println(redisTemplate.opsForSet().size(redisKey));
+//        System.out.println(redisTemplate.opsForSet().pop(redisKey));
+//        System.out.println(redisTemplate.opsForSet().members(redisKey));
+//    }
+//
+//    @Test
+//    public void testSortedSets() {
+//        String redisKey = "test:students";
+//
+//        redisTemplate.opsForZSet().add(redisKey, "唐僧", 80);
+//        redisTemplate.opsForZSet().add(redisKey, "悟空", 90);
+//        redisTemplate.opsForZSet().add(redisKey, "八戒", 70);
+//
+//        System.out.println(redisTemplate.opsForZSet().zCard(redisKey));
+//        System.out.println(redisTemplate.opsForZSet().score(redisKey,"八戒"));
+//        System.out.println(redisTemplate.opsForZSet().rank(redisKey,"八戒"));
+//        System.out.println(redisTemplate.opsForZSet().reverseRank(redisKey,"八戒"));
+//    }
+//
+//    @Test
+//    public void testKeys() {
+//        redisTemplate.delete("test:user");
+//        System.out.println(redisTemplate.hasKey("test:uesr"));
+//
+//        redisTemplate.expire("test:students", 10, TimeUnit.SECONDS);
+//    }
+//
+//    //多次访问同一个key
+//    @Test
+//    public void testBoundOperations(){
+//        String redisKey = "test:count";
+//        BoundValueOperations operations = redisTemplate.boundValueOps(redisKey);
+//        operations.increment();
+//        System.out.println(operations.get());
+//    }
+//
+//    //编程式事务
+//    @Test
+//    public void testTransactional(){
+//        Object obj = redisTemplate.execute(new SessionCallback() {
+//            @Override
+//            public Object execute(RedisOperations operations) throws DataAccessException {
+//                String redisKey = "text:tx";
+//                operations.multi();
+//
+//                operations.opsForSet().add(redisKey, "张三");
+//                operations.opsForSet().add(redisKey, "李四");
+//                operations.opsForSet().add(redisKey, "王五");
+//
+//                System.out.println(operations.opsForSet().members(redisKey));
+//                return null;
+//            }
+//        });
+//        System.out.println(obj);
+//    }
 }
